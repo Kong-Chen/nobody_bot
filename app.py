@@ -12,7 +12,9 @@ import mysql.connector
 import requests
 import re
 from datetime import datetime, time, timedelta
-#import pytz 
+from checkday import get_weekday_in_taiwan
+from insertuser import add_user_to_json
+from inserttakeleave import add_takeleave_to_json 
 
 
 
@@ -47,53 +49,21 @@ def send_line_notify(message):
 @app.route("/callback", methods=['GET','POST'])
 def callback():
     
+    #排程用
     if request.method == 'GET':
+        current_time = datetime.utcnow() + timedelta(hours=8)
+        year = current_time.year
+        month = current_time.month
+        day = current_time.day
+        date_to_check = datetime(year, month, day)
         
-        #current_time = datetime.now().time()
-        # 取得現在的台灣時間
-        current_time_taiwan = datetime.now() + timedelta(hours=8)
-        current_time = current_time_taiwan.time()
-        midnight = time(0, 0)
-        eight_am = time(8, 0)
-
-        # 設定台灣時區
-        #taipei_timezone = pytz.timezone('Asia/Taipei')
-
-
-
-        if midnight <= current_time <= eight_am:
-            return "OK"
-        else :
-            # 建立連接 (修改)
-            connection = psycopg2.connect(
-                host="dpg-cn09uaev3ddc73c0h73g-a.oregon-postgres.render.com",
-                port="5432",
-                database="kongdb_r77a",
-                user="kong",
-                password="CvXiRmnIaTOESIwcUU0aAeuVkOYDOKWG"
-            )
-            cursor = connection.cursor()
-
-            # 使用 %s 作為占位符，並在 execute 的第二個參數中提供實際參數值
-            query = """
-                SELECT B.user_name, A.last_pee_time
-                FROM user_pee_cron A
-                JOIN users B ON A.user_no = B.user_no
-                WHERE A.last_pee_time < NOW() AT TIME ZONE 'Asia/Taipei' - INTERVAL '3 hours'
-            """
-            cursor.execute(query, )
-            rows = cursor.fetchall()
-            
-            for row in rows:
-                user_name, last_pee_time = row
-                message = ('\n' + f"{user_name},上一次廁所已經是{last_pee_time} !!!!，更新範例為：已經在13:00上廁所")
-                response = send_line_notify(message)        
-            cursor.close()
-            connection.close()
-            return "OK"
+        if get_weekday_in_taiwan(date_to_check) == 4 :
+            message = ('\n' + f"請假人有.....")
+            response = send_line_notify(message)
+        
+        return "OK"
     
-
-        
+      
     elif request.method == 'POST':
         # 處理 POST 請求的邏輯    
         # 取得 request headers 中的 X-Line-Signature 屬性
@@ -114,94 +84,79 @@ def callback():
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     
-    connection = psycopg2.connect(
-            host="dpg-cn09uaev3ddc73c0h73g-a.oregon-postgres.render.com",
-            port="5432",
-            database="kongdb_r77a",
-            user="kong",
-            password="CvXiRmnIaTOESIwcUU0aAeuVkOYDOKWG"
-        )
-    cursor = connection.cursor()
-
-    
     # 收到使用者的訊息
-    timestamp = datetime.now()
     user_message = event.message.text
     user_line_id = event.source.user_id
-    
-    #cursor = connection.cursor()
-    #cursor.execute("SELECT member_name FROM member")
-    #existing_user = cursor.fetchone()
-
-
 
     if event.source.type == 'user' or event.source.type == 'group' or event.source.type == 'room':
         profile = line_bot_api.get_profile(user_line_id)
         user_nickname = profile.display_name
 
     try:
-        cursor = connection.cursor()
-        query = "SELECT user_no FROM users WHERE user_id = %s"
-        cursor.execute(query, (user_line_id,))
-        user_no = cursor.fetchone()
-        if not user_no:
-            query = "INSERT INTO users (user_id, user_name) VALUES (%s, %s)"
-            data = (user_line_id, user_nickname)  
-            cursor.execute(query, data)
-            connection.commit()
-            query = "SELECT user_no FROM users WHERE user_id = %s"
-            cursor.execute(query, (user_line_id,))
-            user_no = cursor.fetchone()
-            
-            query = "INSERT INTO user_pee_cron (user_no,last_pee_time) VALUES (%s, %s)"
-            data = (user_no,'1999/01/01 00:00:00.000')  
-            cursor.execute(query, data)
-            connection.commit()
+        #新增使用者
+        add_user_to_json(user_line_id,user_nickname)
         
-  
-        
-        if user_message =='Nasa':
-            # API 密鑰
-            api_key = "74K2SccksUYY9UL8P6FPb7oz3Vn0JFacjP5ZPdPh"
-            print (api_key)
+        if user_message =='功能':
+            aaa = ('\n' + f"1.請假：0520請假"+'\n' + f"2.請假取消：0520請假取消"+'\n' + f"3.請假查詢：0520查詢")
+            line_bot_api.reply_message(
+                event.reply_token,
+                TextSendMessage(text=aaa)
+            )
             
-        elif re.match(r'已經在\d{2}:\d{2}上廁所', user_message):
-            # user_message = '已經在15:45上廁所'
-            # 檢查是否符合格式
-                # 使用正規表達式匹配時間格式
-            pattern = r'已經在(\d{2}:\d{2})上廁所'
+        elif re.match(r'\d{4}請假', user_message):
+            # 使用正規表達式匹配日期格式
+            pattern = r'(\d{2})(\d{2})請假'
             match = re.match(pattern, user_message)
 
             if match:
-                time_value = match.group(1)
-                
+                month = match.group(1)
+                day = match.group(2)
+                year = datetime.now().year
+                date_str = f"{year}-{month}-{day}"
+
                 try:
-                    datetime.strptime(time_value, '%H:%M')
-                    current_date = datetime.now().strftime('%Y-%m-%d')
-                    combined_datetime_str = f'{current_date} {time_value}'
-                    combined_datetime = datetime.strptime(combined_datetime_str, '%Y-%m-%d %H:%M')                   
+                    if get_weekday_in_taiwan(date_str) > 5 : #如果是假日
                     
-                    query = "UPDATE user_pee_cron SET last_pee_time = %s WHERE user_no = %s"
-                    data = (combined_datetime, user_no)  
-                    cursor.execute(query, data)
-                    connection.commit()
-                    
-                    aaa = (f'收到喔!更新時間為：{combined_datetime}')
-                    line_bot_api.reply_message(
-                        event.reply_token,
-                        TextSendMessage(text=aaa)
-                    )
+                        if add_takeleave_to_json(user_line_id, date_str) == 1 :
+                            response_message = f"收到喔! 請假日期為：{date_str}"
+                            line_bot_api.reply_message(
+                                event.reply_token,
+                                TextSendMessage(text=response_message)
+                            )
+                        elif add_takeleave_to_json(user_line_id, date_str) == 0 :
+                            response_message = f"您該天已經請假喔!!!"
+                            line_bot_api.reply_message(
+                                event.reply_token,
+                                TextSendMessage(text=response_message)
+                            )
+                        else :
+                            response_message = f"請假失敗!原因請假管理員"
+                            line_bot_api.reply_message(
+                                event.reply_token,
+                                TextSendMessage(text=response_message)
+                            )
+
+                    else:
+                        response_message = f"請假日期非假日!!!!"
+                        line_bot_api.reply_message(
+                            event.reply_token,
+                            TextSendMessage(text=response_message)
+                        )
+                        
                 except ValueError:
-                    aaa = ('未匹配到合法的24小時制時間')
+                    warning_message = '日期格式不正確，請檢查輸入。'
                     line_bot_api.reply_message(
                         event.reply_token,
-                        TextSendMessage(text=aaa)
-                    )                
-        else:
-            line_bot_api.reply_message(
-                event.reply_token,
-                TextSendMessage(text='不要亂打')
-            )
+                        TextSendMessage(text=warning_message)
+                    )
+            else:
+                warning_message = '請輸入正確的日期格式，範例如：0520請假'
+                line_bot_api.reply_message(
+                    event.reply_token,
+                    TextSendMessage(text=warning_message)
+                )
+        else: #不能亂講話
+            warning_message = '請不要亂打，或輸入(功能)來看提示!!!!'
         
     except psycopg2.Error as e:
         # print("資料庫錯誤:", e)
@@ -209,11 +164,6 @@ def handle_message(event):
             event.reply_token,
             TextSendMessage(text="資料庫錯誤啦!")
         )
-
-
-    finally:
-        cursor.close()
-        connection.close()
 
 if __name__ == "__main__":
     # 在本地運行時才啟動伺服器
