@@ -7,7 +7,10 @@ def add_user_to_json(lineid, name, filename='user.json'):
     # 如果文件存在，讀取現有數據
     if os.path.exists(filename):
         with open(filename, 'r') as file:
-            data = json.load(file)
+            try:
+                data = json.load(file)
+            except json.JSONDecodeError:
+                data = []
     else:
         data = []
 
@@ -25,3 +28,6 @@ def add_user_to_json(lineid, name, filename='user.json'):
         json.dump(data, file, indent=4)
     
     # print(f"User with lineid {lineid} and name {name} added successfully.")
+
+# 測試函數
+# add_user_to_json("11111111111", "kong")
