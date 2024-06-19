@@ -159,21 +159,21 @@ def handle_message(event):
                                 TextSendMessage(text=response_message)
                             )
                         else:
-                            response_message = f"該用戶已在此日期請假!!"
+                            response_message = f"您在此日期已請假!!"
                             line_bot_api.reply_message(
                                 event.reply_token,
                                 TextSendMessage(text=response_message)
                             )
 
                     else:
-                        response_message = f"請假日期非假日!!!!"
+                        response_message = f"請假日期非練習時間!!!!"
                         line_bot_api.reply_message(
                             event.reply_token,
                             TextSendMessage(text=response_message)
                         )
                         
                 except ValueError:
-                    warning_message = '日期格式不正確，請檢查輸入。'
+                    warning_message = '日期格式不正確。'
                     line_bot_api.reply_message(
                         event.reply_token,
                         TextSendMessage(text=warning_message)
@@ -234,7 +234,7 @@ def handle_message(event):
                         )
                         
                 except ValueError:
-                    warning_message = '日期格式不正確，請檢查輸入。'
+                    warning_message = '日期格式不正確。'
                     line_bot_api.reply_message(
                         event.reply_token,
                         TextSendMessage(text=warning_message)
