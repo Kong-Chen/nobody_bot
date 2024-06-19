@@ -13,10 +13,6 @@ import requests
 import re
 from datetime import datetime, time, timedelta
 from checkday import get_weekday_in_taiwan
-# from insertuser import add_user_to_json
-from inserttakeleave import add_takeleave_to_json 
-import json
-import os
 
 
 
@@ -167,24 +163,7 @@ def handle_message(event):
                 try:
                     if get_weekday_in_taiwan(date_str) > 5 : #如果是假日
                     
-                        if add_takeleave_to_json(user_line_id, date_str) == 1 :
-                            response_message = f"收到喔! 請假日期為：{date_str}"
-                            line_bot_api.reply_message(
-                                event.reply_token,
-                                TextSendMessage(text=response_message)
-                            )
-                        elif add_takeleave_to_json(user_line_id, date_str) == 0 :
-                            response_message = f"您該天已經請假喔!!!"
-                            line_bot_api.reply_message(
-                                event.reply_token,
-                                TextSendMessage(text=response_message)
-                            )
-                        else :
-                            response_message = f"請假失敗!原因請假管理員"
-                            line_bot_api.reply_message(
-                                event.reply_token,
-                                TextSendMessage(text=response_message)
-                            )
+                        a=111
 
                     else:
                         response_message = f"請假日期非假日!!!!"
