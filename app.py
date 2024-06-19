@@ -247,6 +247,62 @@ def handle_message(event):
                 )
         
         
+        elif re.match(r'\d{4}查詢請假', user_message):
+            # 使用正規表達式匹配日期格式
+            pattern = r'(\d{2})(\d{2})查詢請假'
+            match = re.match(pattern, user_message)
+
+            if match:
+                month = match.group(1)
+                day = match.group(2)
+                year = datetime.now().year
+                date_str = f"{year}-{month}-{day}"
+
+                try:
+                    datetime.strptime(date_str, '%Y-%m-%d')  # 檢查日期格式是否正確
+
+                    # 查詢 leave_records 表格，找出符合該日期的所有 user_id
+                    query = """
+                    SELECT l.user_id, u.user_name
+                    FROM leave_records l
+                    LEFT JOIN users u ON l.user_id = u.user_id
+                    WHERE l.leave_date = %s;
+                    """
+                    cursor.execute(query, (date_str,))
+                    records = cursor.fetchall()
+
+                    if records:
+                        response_message = ''
+                        for record in records:
+                            user_id = record[0]
+                            user_name = record[1]
+                            response_message += f"用戶 {user_id} ({user_name}) 在 {date_str} 有請假紀錄。\n"
+
+                        line_bot_api.reply_message(
+                            event.reply_token,
+                            TextSendMessage(text=response_message)
+                        )
+                    else:
+                        response_message = f"在 {date_str} 沒有任何人請假。"
+                        line_bot_api.reply_message(
+                            event.reply_token,
+                            TextSendMessage(text=response_message)
+                        )
+
+                except ValueError:
+                    warning_message = '日期格式不正確。'
+                    line_bot_api.reply_message(
+                        event.reply_token,
+                        TextSendMessage(text=warning_message)
+                    )
+            else:
+                warning_message = '請輸入正確的日期格式，範例如：0520查詢請假'
+                line_bot_api.reply_message(
+                    event.reply_token,
+                    TextSendMessage(text=warning_message)
+                )
+
+        
         
         
         
