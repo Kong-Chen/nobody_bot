@@ -39,6 +39,7 @@ register_adapter(uuid.UUID, adapt_uuid)
 def send_line_notify(message):
     url = 'https://notify-api.line.me/api/notify'
     token = 'JFNVWXhtYadtX65B3U9g4s5vzgVTeUdLVZqykcE4TUs' #列車
+    # FyyMaWRVa0fzLT31LzqJ9kOIblJJk6oxJjq9wN8H7Cn   世壯
     headers = {
         'Authorization': 'Bearer ' + token
     }
@@ -88,7 +89,7 @@ def callback():
             cursor.execute(query, (next_saturday_str,))
             records = cursor.fetchall()
             if records:
-                response_message = '請假的有：'
+                response_message = '這週請假的有：'
                 for record in records:
                     user_name = record[0]
                     response_message += f"\n{user_name}"
