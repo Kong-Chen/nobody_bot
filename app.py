@@ -263,7 +263,7 @@ def handle_message(event):
 
                     # 查詢 leave_records 表格，找出符合該日期的所有 user_id
                     query = """
-                    SELECT l.user_id, u.user_name
+                    SELECT u.user_name
                     FROM leave_records l
                     LEFT JOIN users u ON l.user_id = u.user_id
                     WHERE l.leave_date = %s;
@@ -272,11 +272,10 @@ def handle_message(event):
                     records = cursor.fetchall()
 
                     if records:
-                        response_message = ''
+                        response_message = '請假的有：\n'
                         for record in records:
-                            user_id = record[0]
-                            user_name = record[1]
-                            response_message += f"用戶 {user_id} ({user_name}) 在 {date_str} 有請假紀錄。\n"
+                            user_name = record[0]
+                            response_message += f"{user_name}"
 
                         line_bot_api.reply_message(
                             event.reply_token,
