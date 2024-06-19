@@ -38,7 +38,7 @@ register_adapter(uuid.UUID, adapt_uuid)
 #發送line_notify
 def send_line_notify(message):
     url = 'https://notify-api.line.me/api/notify'
-    token = 'TDlRiyRQOrHPIsN0MSfmkQ8cG1dvyllsz3RlBkXe8sG' #鬧鐘
+    token = 'JFNVWXhtYadtX65B3U9g4s5vzgVTeUdLVZqykcE4TUs' #列車
     headers = {
         'Authorization': 'Bearer ' + token
     }
@@ -58,11 +58,44 @@ def callback():
         year = current_time.year
         month = current_time.month
         day = current_time.day
-        date_to_check = datetime(year, month, day)
+        hour = current_time.hour
+        minute = current_time.minute
         
-        if get_weekday_in_taiwan(date_to_check) == 4 :
-            message = ('\n' + f"請假人有.....")
-            response = send_line_notify(message)
+        if current_time.weekday() <= 4 :     #and hour == 8 and minute == 0 :
+            
+            days_until_saturday = (5 - current_time.weekday() + 7) % 7
+            if days_until_saturday == 0:
+                days_until_saturday = 7  # 如果今天是周六，找到下一个周六
+
+            next_saturday = current_time + timedelta(days=days_until_saturday)
+            next_saturday_str = f"{next_saturday.year}-{next_saturday.month:02d}-{next_saturday.day:02d}"
+            
+            
+            connection = psycopg2.connect(
+                host="dpg-cpp4jouehbks73brha50-a.oregon-postgres.render.com",
+                port="5432",
+                database="nobody_y10j",
+                user="kong",
+                password="yydSDvrjnBhY68izhYu7UhRiiQPdPGth"
+            )
+            cursor = connection.cursor()
+            query = """
+            SELECT u.user_name
+            FROM leave_records l
+            LEFT JOIN users u ON l.user_id = u.user_id
+            WHERE l.leave_date = %s;
+            """
+            cursor.execute(query, (next_saturday_str,))
+            records = cursor.fetchall()
+            if records:
+                response_message = '請假的有：'
+                for record in records:
+                    user_name = record[0]
+                    response_message += f"\n{user_name}"
+
+            else:
+                response_message = f"這週沒有任何人請假！！"
+            response = send_line_notify(response_message)
         
         return "OK"
     
