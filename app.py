@@ -117,7 +117,7 @@ def handle_message(event):
         
         # 對話關鍵字判斷開始 *****************
         if user_message =='功能':
-            aaa = (f"1.請假：0520請假"+'\n' + f"2.請假取消：0520請假取消"+'\n' + f"3.請假查詢：0520查詢")
+            aaa = (f"1.請假：0520請假"+'\n' + f"2.取消請假：0520取消請假"+'\n' + f"3.查詢請假：0520查詢請假")
             line_bot_api.reply_message(
                 event.reply_token,
                 TextSendMessage(text=aaa)
@@ -185,9 +185,9 @@ def handle_message(event):
                     TextSendMessage(text=warning_message)
                 )
         
-        elif re.match(r'\d{4}請假取消', user_message):
+        elif re.match(r'\d{4}取消請假', user_message):
             # 使用正規表達式匹配日期格式
-            pattern = r'(\d{2})(\d{2})請假取消'
+            pattern = r'(\d{2})(\d{2})取消請假'
             match = re.match(pattern, user_message)
 
             if match:
