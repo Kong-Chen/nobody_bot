@@ -153,13 +153,13 @@ def handle_message(event):
                             cursor.execute(query_leave, (user_line_id, date_str))
                             connection.commit()
 
-                            response_message = f"收到請假"
+                            response_message = f'完成請假日期登記：{date_str}'
                             line_bot_api.reply_message(
                                 event.reply_token,
                                 TextSendMessage(text=response_message)
                             )
                         else:
-                            response_message = f"該用戶已在此日期請假"
+                            response_message = f"該用戶已在此日期請假!!"
                             line_bot_api.reply_message(
                                 event.reply_token,
                                 TextSendMessage(text=response_message)
@@ -214,7 +214,7 @@ def handle_message(event):
                             cursor.execute(query_leave, (user_line_id, date_str))
                             connection.commit()
 
-                            response_message = f"請假已取消"
+                            response_message = f'完成請假取消：{date_str}'
                             line_bot_api.reply_message(
                                 event.reply_token,
                                 TextSendMessage(text=response_message)
@@ -240,7 +240,7 @@ def handle_message(event):
                         TextSendMessage(text=warning_message)
                     )
             else:
-                warning_message = '請輸入正確的日期格式，範例如：0520請假取消'
+                warning_message = '請輸入正確的日期格式，範例如：0520取消請假'
                 line_bot_api.reply_message(
                     event.reply_token,
                     TextSendMessage(text=warning_message)
