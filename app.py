@@ -136,12 +136,34 @@ def handle_message(event):
 
                 try:
                     if get_weekday_in_taiwan(date_str) > 5 : #如果是假日
-                    
-                        response_message = f"收到請假"
-                        line_bot_api.reply_message(
-                            event.reply_token,
-                            TextSendMessage(text=response_message)
-                        )
+                        
+                        query_check = """
+                        SELECT COUNT(*) FROM leave_records
+                        WHERE user_id = %s AND leave_date = %s;
+                        """
+                        cursor.execute(query_check, (user_line_id, date_str))
+                        count = cursor.fetchone()[0]
+                        
+                        if count == 0:
+                            # 插入请假记录到 leave_records 资料表
+                            query_leave = """
+                            INSERT INTO leave_records (user_id, leave_date)
+                            VALUES (%s, %s);
+                            """
+                            cursor.execute(query_leave, (user_line_id, date_str))
+                            connection.commit()
+
+                            response_message = f"收到請假"
+                            line_bot_api.reply_message(
+                                event.reply_token,
+                                TextSendMessage(text=response_message)
+                            )
+                        else:
+                            response_message = f"該用戶已在此日期請假"
+                            line_bot_api.reply_message(
+                                event.reply_token,
+                                TextSendMessage(text=response_message)
+                            )
 
                     else:
                         response_message = f"請假日期非假日!!!!"
