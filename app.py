@@ -62,7 +62,7 @@ def callback():
         hour = current_time.hour
         minute = current_time.minute
         
-        if current_time.weekday() <= 4 :     #and hour == 8 and minute == 0 :
+        if current_time.weekday() <= 4 and hour == 8 and minute == 0 :
             
             days_until_saturday = (5 - current_time.weekday() + 7) % 7
             if days_until_saturday == 0:
