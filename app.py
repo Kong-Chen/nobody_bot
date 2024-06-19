@@ -117,7 +117,7 @@ def handle_message(event):
         
         # 對話關鍵字判斷開始 *****************
         if user_message =='功能':
-            aaa = (f"1.請假：0520請假"+'\n' + f"2.取消請假：0520取消請假"+'\n' + f"3.查詢請假：0520查詢請假")
+            aaa = (f"1.請假：0520請假"+'\n' + f"2.取消請假：0520取消請假"+'\n' + f"3.查詢請假：0520查詢請假" +'\n' + f"4.我的請假查詢")
             line_bot_api.reply_message(
                 event.reply_token,
                 TextSendMessage(text=aaa)
@@ -307,7 +307,8 @@ def handle_message(event):
             query = """
             SELECT leave_date
             FROM leave_records
-            WHERE user_id = %s;
+            WHERE user_id = %s
+            ORDER BY leave_date;
             """
             cursor.execute(query, (user_line_id,))
             records = cursor.fetchall()
