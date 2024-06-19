@@ -12,11 +12,6 @@ import psycopg2
 import requests
 import re
 from datetime import datetime, time, timedelta
-from checkday import get_weekday_in_taiwan
-
-
-
-
 
 app = Flask(__name__)
 
@@ -24,6 +19,16 @@ app = Flask(__name__)
 line_bot_api = LineBotApi(os.environ['LINE_CHANNEL_ACCESS_TOKEN'])
 handler = WebhookHandler(os.environ['LINE_CHANNEL_SECRET'])
 
+
+def get_weekday_in_taiwan(date):
+    
+    date = datetime.strptime(date, '%Y-%m-%d')
+    # 轉換成台灣時間
+    taiwan_time = date + timedelta(hours=8)
+    
+    # 取得星期幾 (0 = 星期一, 1 = 星期二, ..., 6 = 星期日)
+    weekday = taiwan_time.weekday()
+    return weekday+1
 
 # 註冊 UUID 型別的適應器
 def adapt_uuid(uuid):
