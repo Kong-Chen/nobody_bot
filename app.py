@@ -8,7 +8,7 @@ import uuid
 from psycopg2.extensions import adapt, register_adapter
 import psycopg2
 from datetime import datetime
-import mysql.connector
+import psycopg2
 import requests
 import re
 from datetime import datetime, time, timedelta
@@ -117,6 +117,16 @@ def callback():
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     
+    # 建立連接 (修改)
+    connection = psycopg2.connect(
+        host="dpg-cpp4jouehbks73brha50-a.oregon-postgres.render.com",
+        port="5432",
+        database="nobody_y10j",
+        user="kong",
+        password="yydSDvrjnBhY68izhYu7UhRiiQPdPGth"
+    )
+      
+    
     # 收到使用者的訊息
     user_message = event.message.text
     user_line_id = event.source.user_id
@@ -127,7 +137,14 @@ def handle_message(event):
 
     try:
         #新增使用者
-        add_user_to_json(user_line_id,user_nickname)
+        cursor = connection.cursor()
+        query = """
+        INSERT INTO users (user_id, user_name)
+        VALUES (%s, %s)
+        ON CONFLICT (user_id) DO NOTHING;
+        """
+        cursor.execute(query, (user_line_id, user_nickname))
+        connection.commit()
         
         if user_message =='功能':
             aaa = ('\n' + f"1.請假：0520請假"+'\n' + f"2.請假取消：0520請假取消"+'\n' + f"3.請假查詢：0520查詢")
