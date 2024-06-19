@@ -43,37 +43,6 @@ def send_line_notify(message):
     response = requests.post(url, headers=headers, data=data)
     return response
 
-def add_user_to_json(lineid, name, filename='user.json'):
-    user_data = {"lineid": lineid, "name": name}
-    
-    # 如果文件存在，讀取現有數據
-    if os.path.exists(filename):
-        with open(filename, 'r') as file:
-            try:
-                data = json.load(file)
-            except json.JSONDecodeError:
-                data = []
-    else:
-        data = []
-
-    # 檢查用戶是否已經存在，根據lineid
-    for user in data:
-        if user['lineid'] == lineid:
-            # print(f"User with lineid {lineid} already exists.")
-            return
-
-    # 添加新用戶數據
-    data.append(user_data)
-
-    # 將更新後的數據寫回文件
-    with open(filename, 'w') as file:
-        json.dump(data, file, indent=4)
-    
-    # print(f"User with lineid {lineid} and name {name} added successfully.")
-
-
-
-
 
 @app.route("/callback", methods=['GET','POST'])
 def callback():
@@ -122,7 +91,6 @@ def handle_message(event):
         password="yydSDvrjnBhY68izhYu7UhRiiQPdPGth"
     )
       
-    
     # 收到使用者的訊息
     user_message = event.message.text
     user_line_id = event.source.user_id
@@ -132,7 +100,7 @@ def handle_message(event):
         user_nickname = profile.display_name
 
     try:
-        #新增使用者
+        # 新增使用者
         cursor = connection.cursor()
         query = """
         INSERT INTO users (user_id, user_name)
@@ -142,8 +110,9 @@ def handle_message(event):
         cursor.execute(query, (user_line_id, user_nickname))
         connection.commit()
         
+        # 對話關鍵字判斷開始 *****************
         if user_message =='功能':
-            aaa = ('\n' + f"1.請假：0520請假"+'\n' + f"2.請假取消：0520請假取消"+'\n' + f"3.請假查詢：0520查詢")
+            aaa = (f"1.請假：0520請假"+'\n' + f"2.請假取消：0520請假取消"+'\n' + f"3.請假查詢：0520查詢")
             line_bot_api.reply_message(
                 event.reply_token,
                 TextSendMessage(text=aaa)
@@ -163,7 +132,11 @@ def handle_message(event):
                 try:
                     if get_weekday_in_taiwan(date_str) > 5 : #如果是假日
                     
-                        a=111
+                        response_message = f"收到請假"
+                        line_bot_api.reply_message(
+                            event.reply_token,
+                            TextSendMessage(text=response_message)
+                        )
 
                     else:
                         response_message = f"請假日期非假日!!!!"
