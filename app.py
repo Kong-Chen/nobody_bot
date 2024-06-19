@@ -272,10 +272,10 @@ def handle_message(event):
                     records = cursor.fetchall()
 
                     if records:
-                        response_message = '請假的有：\n'
+                        response_message = '請假的有：'
                         for record in records:
                             user_name = record[0]
-                            response_message += f"{user_name}"
+                            response_message += f"\n{user_name}"
 
                         line_bot_api.reply_message(
                             event.reply_token,
@@ -301,11 +301,35 @@ def handle_message(event):
                     TextSendMessage(text=warning_message)
                 )
 
+        elif user_message == '我的請假查詢':
+
+            # 查詢 leave_records 表格，找出該用戶的所有請假日期
+            query = """
+            SELECT leave_date
+            FROM leave_records
+            WHERE user_id = %s;
+            """
+            cursor.execute(query, (user_line_id,))
+            records = cursor.fetchall()
+
+            if records:
+                response_message = '您的請假紀錄如下：'
+                for record in records:
+                    leave_date = record[0]
+                    response_message += f"\n{leave_date}"
+
+                line_bot_api.reply_message(
+                    event.reply_token,
+                    TextSendMessage(text=response_message)
+                )
+            else:
+                response_message = "您沒有請假紀錄！"
+                line_bot_api.reply_message(
+                    event.reply_token,
+                    TextSendMessage(text=response_message)
+                )
         
-        
-        
-        
-        
+
         
         else: #不能亂講話
             warning_message = '請不要亂打，或輸入(功能)來看提示!!!!'
