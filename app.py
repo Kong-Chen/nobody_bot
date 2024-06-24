@@ -89,13 +89,54 @@ def callback():
             cursor.execute(query, (next_saturday_str,))
             records = cursor.fetchall()
             if records:
-                response_message = '這週請假的有：'
+                response_message = f'{next_saturday_str}請假的有：'
                 for record in records:
                     user_name = record[0]
                     response_message += f"\n{user_name}"
 
             else:
-                response_message = f"這週沒有任何人請假！！"
+                response_message = f"{next_saturday_str}沒有人請假！！"
+            
+            #增加天氣判斷
+            if current_time.weekday() <= 4 & current_time.weekday() > 0 :
+                authorization = 'CWA-5AB2578A-4D37-4042-9FBB-777EAAED3040'
+                url = "https://opendata.cwa.gov.tw/api/v1/rest/datastore/F-D0047-061"
+
+                # 发出请求
+                response = requests.get(url, {"Authorization": authorization})
+                response.raise_for_status()  # 检查响应状态码是否为200
+                resJson = response.json()
+                locations = resJson["records"]["locations"][0]["location"]
+                target_district = "士林區"
+                target_date = next_saturday_str
+                target_time = target_date +" 09:00:00"
+                pop_time = target_date +" 06:00:00" 
+                for location in locations:
+                    if location["locationName"] == target_district:
+                        # print(location["locationName"])
+                        weatherElements = location["weatherElement"]
+                        for weatherElement in weatherElements:
+                            if weatherElement["elementName"] == "T":
+                                timeDicts = weatherElement["time"]
+                                for timeDict in timeDicts:
+                                    if timeDict["dataTime"] == target_time:
+                                        # print (target_date+":")
+                                        response_message += f"\n"+"社子島當天早上氣象預測如下:"
+                                        aaa = "溫度攝氏:"+timeDict["elementValue"][0]["value"]+"度"
+                                        response_message += f"\n{aaa}"
+                            elif weatherElement["elementName"] == "PoP6h":
+                                popDicts = weatherElement["time"]
+                                for popDict in popDicts:
+                                    if popDict["startTime"] == pop_time:
+                                        bbb= "降雨機率:"+popDict["elementValue"][0]["value"]+"%"
+                                        response_message += f"\n{bbb}"
+                            elif weatherElement["elementName"] == "WS":
+                                windDicts = weatherElement["time"]
+                                for windDict in windDicts:
+                                    if windDict["dataTime"] == target_time:
+                                        ccc="最大風速:"+windDict["elementValue"][0]["value"]+"公尺/秒"
+                                        response_message += f"\n{ccc}"
+            
             response = send_line_notify(response_message)
         
         return "OK"
