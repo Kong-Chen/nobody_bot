@@ -98,7 +98,7 @@ def callback():
                 response_message = f"{next_saturday_str}沒有人請假！！"
             
             #增加天氣判斷
-            if current_time.weekday() <= 4 and current_time.weekday() > 0 :
+            if current_time.weekday() <= 4 & current_time.weekday() > 0 :
                 authorization = 'CWA-5AB2578A-4D37-4042-9FBB-777EAAED3040'
                 url = "https://opendata.cwa.gov.tw/api/v1/rest/datastore/F-D0047-061"
 

@@ -25,7 +25,7 @@ else:
 
 # 定义目标地区和日期
 target_district = "士林區"
-target_date = "2024-06-27"
+target_date = "2024-06-29"
 target_time = target_date +" 09:00:00"
 pop_time = target_date +" 06:00:00" 
 
