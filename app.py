@@ -71,7 +71,6 @@ def callback():
             next_saturday = current_time + timedelta(days=days_until_saturday)
             next_saturday_str = f"{next_saturday.year}-{next_saturday.month:02d}-{next_saturday.day:02d}"
             
-            
             connection = psycopg2.connect(
                 host="dpg-cpp4jouehbks73brha50-a.oregon-postgres.render.com",
                 port="5432",
