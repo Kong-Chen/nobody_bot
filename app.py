@@ -97,6 +97,7 @@ def callback():
                 response_message = f"{next_saturday_str}沒有人請假！！"
             
             #增加天氣判斷
+            """
             if 2 <= current_time.weekday() <= 4:
                 authorization = 'CWA-5AB2578A-4D37-4042-9FBB-777EAAED3040'
                 url = "https://opendata.cwa.gov.tw/api/v1/rest/datastore/F-D0047-061"
@@ -135,7 +136,7 @@ def callback():
                                     if windDict["dataTime"] == target_time:
                                         ccc="最大風速:"+windDict["elementValue"][0]["value"]+"公尺/秒"
                                         response_message += f"\n{ccc}"
-            
+            """
             response = send_line_notify(response_message)
         
         return "OK"
