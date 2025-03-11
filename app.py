@@ -63,7 +63,7 @@ def callback():
         hour = current_time.hour
         minute = current_time.minute
         
-        if current_time.weekday() <= 4 and hour == 8 and minute == 0 :
+        if current_time.weekday() <= 4 : #and hour == 8 and minute == 0 
             
             days_until_saturday = (5 - current_time.weekday() + 7) % 7
             if days_until_saturday == 0:
@@ -141,7 +141,7 @@ def callback():
             
             try:
                 #response = send_line_notify(response_message)
-                GROUP_ID = "" #LINE群組ID
+                GROUP_ID = "C2d40fa4d8ea1b5ed84837293b9128539" #LINE群組ID
                 line_bot_api.push_message(GROUP_ID, TextSendMessage(text=response_message))
             except Exception as e:
                 print(f"推送訊息失敗: {e}")  # 記錄錯誤，但不影響程式執行
