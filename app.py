@@ -63,7 +63,7 @@ def callback():
         hour = current_time.hour
         minute = current_time.minute
         
-        if current_time.weekday() <= 4 : #and hour == 8 and minute == 0 
+        if current_time.weekday() <= 4 and hour == 8 and minute == 0 : 
             
             days_until_saturday = (5 - current_time.weekday() + 7) % 7
             if days_until_saturday == 0:
@@ -416,10 +416,6 @@ def handle_message(event):
             if event.source.type == 'group':  # 確保是群組聊天
                 group_id = event.source.group_id
                 response_message = f"此群組的 Group ID 為：\n{group_id}"
-                line_bot_api.reply_message(
-                    event.reply_token,
-                    TextSendMessage(text=response_message)
-                )
             else:
                 response_message = '請不要亂打，或輸入(功能)來看提示!!!!'
 
