@@ -13,6 +13,7 @@ import requests
 import re
 from datetime import datetime, time, timedelta
 
+
 app = Flask(__name__)
 
 # 設置你的 LINE Bot 的 Channel Access Token 和 Channel Secret
@@ -137,8 +138,14 @@ def callback():
                                         ccc="最大風速:"+windDict["elementValue"][0]["value"]+"公尺/秒"
                                         response_message += f"\n{ccc}"
             """
-            response = send_line_notify(response_message)
-        
+            
+            try:
+                #response = send_line_notify(response_message)
+                GROUP_ID = "" #LINE群組ID
+                line_bot_api.push_message(GROUP_ID, TextSendMessage(text=response_message))
+            except Exception as e:
+                print(f"推送訊息失敗: {e}")  # 記錄錯誤，但不影響程式執行
+       
         return "OK"
     
       
@@ -404,11 +411,19 @@ def handle_message(event):
                     event.reply_token,
                     TextSendMessage(text=response_message)
                 )
-        
-
-        
+      
         else: #不能亂講話
-            warning_message = '請不要亂打，或輸入(功能)來看提示!!!!'
+            if event.source.type == 'group':  # 確保是群組聊天
+                group_id = event.source.group_id
+                response_message = f"此群組的 Group ID 為：\n{group_id}"
+                line_bot_api.reply_message(
+                    event.reply_token,
+                    TextSendMessage(text=response_message)
+                )
+            else:
+                response_message = '請不要亂打，或輸入(功能)來看提示!!!!'
+
+    
         
     except psycopg2.Error as e:
         # print("資料庫錯誤:", e)
